@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: big-brother
+spec:
+  containers:
+  - name: app
+    image: nginx:alpine
+    ports:
+      - containerPort: 80
+
+    # 🔥 LIVENESS PROBE
+    # sprawdza czy kontener żyje → jeśli fail → restart
+    livenessProbe:
+      httpGet:
+        path: /              # endpoint do sprawdzenia
+        port: 80             # port w kontenerze
+        scheme: HTTP         # HTTP lub HTTPS
+      initialDelaySeconds: 10  # ile czekać po starcie zanim zacznie sprawdzać
+      periodSeconds: 10        # co ile sekund wykonywać check
+      timeoutSeconds: 2        # ile max czekać na odpowiedź
+      failureThreshold: 3      # ile faili pod rząd → restart
+      successThreshold: 1      # ile sukcesów → uznać za OK (zwykle 1)
+
+    # 🔥 READINESS PROBE
+    # czy pod jest gotowy do przyjmowania ruchu (Service)
+    readinessProbe:
+      httpGet:
+        path: /              # endpoint readiness
+        port: 80
+      initialDelaySeconds: 5   # start checków szybciej niż liveness
+      periodSeconds: 5         # częstsze sprawdzanie
+      timeoutSeconds: 2
+      failureThreshold: 3      # po tylu failach wypada z Service
+      successThreshold: 1      # ile sukcesów → wraca do Service
+
+    # 🔥 STARTUP PROBE
+    # dla wolno startujących aplikacji
+    startupProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 0   # zwykle 0 (start od razu)
+      periodSeconds: 5         # co ile sprawdzać start
+      timeoutSeconds: 2
+      failureThreshold: 30     # ile prób → daje czas na start (30*5=150s)
+      successThreshold: 1      # po sukcesie → przejście do liveness/readiness

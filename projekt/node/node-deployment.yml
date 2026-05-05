@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-blue
+  labels:
+    app: node
+    version: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: node
+        version: blue
+    spec:
+      containers:
+      - name: node
+        image: backend-node:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4000
+        env:
+        - name: USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-username
+        - name: USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        - name: DB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-config
+              key: mongo-url
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-green
+  labels:
+    app: node
+    version: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node
+      version: green
+  template:
+    metadata:
+      labels:
+        app: node
+        version: green
+    spec:
+      containers:
+      - name: node
+        image: backend-node:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4000
+        env:
+        - name: USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-username
+        - name: USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        - name: DB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-config
+              key: mongo-url

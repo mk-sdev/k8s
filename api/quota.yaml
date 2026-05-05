@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: full-quota
+  namespace: monitoring  # namespace, którego dotyczy quota
+spec:
+  hard:
+
+    # ========================
+    # CPU / MEMORY (compute)
+    # ========================
+
+    requests.cpu: "4"        # maksymalna suma CPU requestów wszystkich podów
+    requests.memory: 8Gi     # maksymalna suma requestów pamięci
+
+    limits.cpu: "8"          # maksymalna suma limitów CPU
+    limits.memory: 16Gi      # maksymalna suma limitów pamięci
+
+    # ========================
+    # STORAGE
+    # ========================
+
+    requests.storage: 100Gi  # łączna ilość storage (PVC) w namespace
+    persistentvolumeclaims: "10"  # maksymalna liczba PVC
+
+    # quota per StorageClass (np. droższy storage)
+    fast.storageclass.storage.k8s.io/requests.storage: 50Gi  # limit dla klasy "fast"
+    slow.storageclass.storage.k8s.io/requests.storage: 80Gi  # limit dla klasy "slow"
+
+    # ========================
+    # OBIEKTY (ilości zasobów)
+    # ========================
+
+    pods: "30"               # maksymalna liczba podów
+    services: "10"           # maksymalna liczba Service
+    services.loadbalancers: "2"   # maksymalna liczba Service typu LoadBalancer
+    services.nodeports: "5"       # maksymalna liczba Service typu NodePort
+
+    configmaps: "20"         # maksymalna liczba ConfigMap
+    secrets: "20"            # maksymalna liczba Secretów
+
+    replicationcontrollers: "5"   # legacy, ale nadal wspierane
+    deployments.apps: "10"        # maksymalna liczba Deploymentów
+    statefulsets.apps: "5"        # maksymalna liczba StatefulSetów
+    daemonsets.apps: "3"          # maksymalna liczba DaemonSetów
+    jobs.batch: "10"              # maksymalna liczba Jobów
+    cronjobs.batch: "5"           # maksymalna liczba CronJobów
+
+    # ========================
+    # EPHEMERAL STORAGE
+    # ========================
+
+    requests.ephemeral-storage: 10Gi   # suma requestów ephemeral storage
+    limits.ephemeral-storage: 20Gi     # suma limitów ephemeral storage
+
+    # ========================
+    # INNE (rzadziej używane, ale przydatne)
+    # ========================
+
+    count/ingresses.networking.k8s.io: "5"   # maksymalna liczba Ingressów
+    count/networkpolicies.networking.k8s.io: "10"  # liczba NetworkPolicy
+
+    # liczba endpointów (może chronić API server przed przeciążeniem)
+    endpoints: "10"
+
+    # ========================
+    # WYMUSZENIE REQUESTS/LIMITS (pośrednie)
+    # ========================
+    # Jeśli ustawisz requests/limits.* i użytkownik nie poda ich w Podzie,
+    # tworzenie zasobu zostanie odrzucone (często używane razem z LimitRange)

@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels:
+    app: frontend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate # to jest domyślne
+    rollingUpdate:
+      maxUnavailable: 1 # max liczba niedosepnych podów podczas aktualizacji
+      maxSurge: 1 # k8s może tymczasowo stworzyć max 1 pod ponad wyznaczony limit
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: frontend:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000 # port wewnątrz kontenera
+          initialDelaySeconds: 3 # ile czekać po starcie konteneara zanim zacznie sprawdzać gotowość
+          periodSeconds: 5 # co ile sekund sprawdzać gotowość
+          timeoutSeconds: 2 #ile czekać na odpowiedź 
+          failureThreshold: 3 # ile razy z rzędu test ma się nie powieść zanim uzna, że kontener jest niedostępny
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000 # port wewnątrz kontenera
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30002

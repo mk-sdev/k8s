@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.25.2
+
+      # DANE z --from-literal
+      env:
+      - name: NGINX_GREETING # tak się będzie nazywać zmienna środowiskowa w kontenerze
+        valueFrom:
+          configMapKeyRef:
+            name: nginxconfigmap # nazwa ConfigMap, z której pobieramy wartości
+            key: nginxgreeting # klucz w ConfigMap, którego wartość chcemy użyć
+
+      # DANE z --from-file
+      volumeMounts:
+      - mountPath: "/helion" # ścieżka w kontenerze, gdzie będzie dostępny plik konfiguracyjny
+        name: helion # nazwa wolumenu, który zdefiniujemy poniżej
+  volumes: # przetrwa restart poda
+  - name: helion
+    configMap:
+      name: configfile # nazwa ConfigMap, z której tworzymy wolumen

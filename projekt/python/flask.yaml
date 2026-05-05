@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-deployment
+  labels:
+    app: flask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+      - name: flask
+        image: backend-python:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-username
+        - name: USER_PWD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        - name: DB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: mongo-config
+              key: mongo-url
+      - name: sidecar
+        image: busybox
+        command: ["sh", "-c", "while true; do echo Hello from the sidecar container!; sleep 5; done"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+spec:
+  type: NodePort # k get node -o wide | żeby dowiedziec sie o ip noda
+  selector:
+    app: flask
+  ports:
+    - protocol: TCP
+      port: 5000 # wejście do serwisu
+      targetPort: 5000 # wejście do kontenera/pdoa, musi się zgadzać z portem w main.py
+      nodePort: 30003 # port noda

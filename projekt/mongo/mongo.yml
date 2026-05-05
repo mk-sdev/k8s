@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment # nazwa deloymentu wyświetlająca się po wpisaniu k get deployments
+  labels: # dowolne tagi, które dotyczą tylko deploymentu a nie podów. Można robić: kubectl get deployments -l app=mongo
+    app: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels: # zarządzaj wszystkimi podami które mają dane labele; immutable
+      app: mongo
+  template:
+    metadata:
+      labels: # dowolne tagi, ale przynajmniej jeden musi się zgadzać z tymi w matchLabels
+        app: mongo
+    spec:
+      containers:
+      - name: mongo # nazwa kontenera, dowolna
+        image: mongo:7
+        ports:
+        - containerPort: 27017 # tylko dokumentacja
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret # z jakiego pliku secret pobrać wartość
+              key: mongo-username # nazwa klucza w pliku secret, który zawiera wartość do tej zmiennej środowiskowej
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: mongo-password
+        volumeMounts:
+        - name: mongo-data #  musi byc takie samo jak w volumes
+          mountPath: /data/db
+       #- name: mongo-data #  musi byc takie samo jak w volumes
+       #  mountPath: /backup
+
+      volumes:
+      - name: mongo-data #  musi byc takie samo jak w volumeMounts
+        persistentVolumeClaim:
+          claimName: mongo-pvc   
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec:
+  selector:
+    app: mongo # musi zgadzać się z labelem w PODACH
+  ports:
+    - protocol: TCP
+      port: 27017 # port na serwisie z którzym łączy sie client
+      targetPort: 27017 # port w kontenerze/podzie z którym łączy się serwis

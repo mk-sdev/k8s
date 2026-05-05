@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-with-pv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: webserver
+          image: nginx:1.25.2
+          ports:
+            - containerPort: 80
+
+      # TO CO NIŻEJ TRZEBA DODAĆ, ABY KONTENER MÓGŁ KORZYSTAĆ Z PERSISTENT VOLUME CLAIM
+
+          volumeMounts:
+            - mountPath: "/usr/share/nginx/html" # ścieżka w kontenerze, gdzie będzie dostępny wolumen
+              name: webservercontent # nazwa wolumenu, który zdefiniujemy poniżej
+      volumes: # przetrwa restart poda
+        - name: webservercontent
+          persistentVolumeClaim:
+            claimName: mypvc # nazwa PersistentVolumeClaim, z którego korzystamy

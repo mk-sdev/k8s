@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-service
+spec:
+  type: NodePort # k get node -o wide | żeby dowiedziec sie o ip noda
+  selector: # deployment musi posiadać WSZYSTKIE labele takie jak niżej (może mieć więcej) coś jak SELECT * FROM pods WHERE app=node AND version=green
+    app: node
+    version: blue # zmiana z blue na green i k apply -f node-service.yml
+  ports:
+    - protocol: TCP
+      port: 4000 # wejście do serwisu
+      targetPort: 4000 # wejście do kontenera/pdoa, musi się zgadzać z portem w index.js
+      nodePort: 30004 # port noda

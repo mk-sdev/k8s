@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Losowa liczba</title>
+</head>
+<body>
+
+  <h1>Losowa liczba</h1>
+
+  <button onclick="getNumber()">Pobierz</button>
+  <button onclick="saveNumber()">Zapisz</button>
+  <button onclick="loadHistory()">Historia</button>
+
+  <p id="result">---</p>
+
+  <ul id="history"></ul>
+
+  <script>
+    let currentNumber = null;
+
+    async function getNumber() {
+      const res = await fetch("http://127.0.0.1:58750/api/random");
+      const data = await res.json();
+
+      currentNumber = data.number;
+      document.getElementById("result").innerText = currentNumber;
+    }
+
+    async function saveNumber() {
+      if (currentNumber === null) return;
+
+      await fetch("http://127.0.0.1:58750/api/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ number: currentNumber })
+      });
+
+      alert("Zapisano!");
+    }
+
+    async function loadHistory() {
+      const res = await fetch("http://127.0.0.1:58750/api/history");
+      const data = await res.json();
+
+      const list = document.getElementById("history");
+      list.innerHTML = "";
+
+      data.forEach(item => {
+        const li = document.createElement("li");
+        li.innerText = item.number;
+        list.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
