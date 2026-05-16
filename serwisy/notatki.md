@@ -94,3 +94,13 @@ kubectl get svc <nazwa_svc> # external-ip, port
 
 i wejdź na ```http://127.0.0.1:<port>```
 
+
+### Uzyskanie dostępu do poda lub serwisu za pomocą port-forward
+
+Przydatne do debugowania, developmentu. Nie wystawia usługi publicznie — tworzy lokalny tunnel z localhosta do klastra.
+
+```
+kubectl port-forward svc/<nazwa_svc> <port_lokalny>:<port_serwisu>
+```
+
+
